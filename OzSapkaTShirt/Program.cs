@@ -13,7 +13,7 @@ namespace OzSapkaTShirt
             builder.Services.AddDbContext<ApplicationContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationContext") ?? throw new InvalidOperationException("Connection string 'ApplicationContext' not found.")));
 
-                        builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options => { options.SignIn.RequireConfirmedAccount = true; options.Password.RequireNonAlphanumeric = false; })
                 .AddEntityFrameworkStores<ApplicationContext>();
 
             // Add services to the container.

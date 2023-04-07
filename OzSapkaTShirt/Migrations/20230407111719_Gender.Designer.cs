@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OzSapkaTShirt.Data;
 
@@ -11,9 +12,10 @@ using OzSapkaTShirt.Data;
 namespace OzSapkaTShirt.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20230407111719_Gender")]
+    partial class Gender
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -241,8 +243,6 @@ namespace OzSapkaTShirt.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Gender");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -363,17 +363,6 @@ namespace OzSapkaTShirt.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("OzSapkaTShirt.Models.ApplicationUser", b =>
-                {
-                    b.HasOne("OzSapkaTShirt.Models.Gender", "GenderType")
-                        .WithMany()
-                        .HasForeignKey("Gender")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GenderType");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,7 +13,7 @@ namespace OzSapkaTShirt.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? id=null)
         {
             return View();
         }

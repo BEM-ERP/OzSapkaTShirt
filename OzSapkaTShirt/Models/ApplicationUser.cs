@@ -35,10 +35,11 @@ public class ApplicationUser : IdentityUser
     public string Address { get; set; } = default!;
 
     [DisplayName("Cinsiyet")]
-    public bool? Gender { get; set; }
+    public byte Gender { get; set; }
 
     [Column(TypeName = "date")]
     [DisplayName("Doğum tarihi")]
+    [DataType(DataType.Date)]
     public DateTime? BirthDate { get; set; }
 
     [Column(TypeName = "nchar(256)")]
@@ -51,6 +52,7 @@ public class ApplicationUser : IdentityUser
     [DisplayName("E-posta")]
     [Required(ErrorMessage = "Bu alan zorunludur.")]
     [StringLength(256, MinimumLength = 5, ErrorMessage = "En fazla 256, en az 5 karakter")]
+    [EmailAddress(ErrorMessage = "Geçersiz format")]
     public override string Email { get => base.Email; set => base.Email = value; }
 
     [Column(TypeName = "char(10)")]
@@ -73,5 +75,8 @@ public class ApplicationUser : IdentityUser
     [DataType(DataType.Password)]
     [Compare("PassWord", ErrorMessage = "Parola eşleşme başarısız")]
     public string ConfirmPassWord { get; set; } = default!;
+
+    [ForeignKey("Gender")]
+    public Gender GenderType { get; set; } = default!;
 }
 

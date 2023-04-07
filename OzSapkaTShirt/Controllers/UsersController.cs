@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OzSapkaTShirt.Data;
 using OzSapkaTShirt.Models;
 
 namespace OzSapkaTShirt.Controllers
@@ -8,10 +10,12 @@ namespace OzSapkaTShirt.Controllers
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationContext _context;
 
-        public UsersController(UserManager<ApplicationUser> userManager)
+        public UsersController(UserManager<ApplicationUser> userManager, ApplicationContext context)
         {
             _userManager = userManager;
+            _context = context;
         }
 
         // GET: Users
@@ -25,12 +29,14 @@ namespace OzSapkaTShirt.Controllers
         // GET: Userss/Details/5
         public async Task<IActionResult> Details(string? id)
         {
+            ApplicationUser? user;
+
             if (id == null || _userManager.Users == null)
             {
                 return NotFound();
             }
 
-            var user = await _userManager.Users
+            user = await _userManager.Users
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
@@ -43,6 +49,9 @@ namespace OzSapkaTShirt.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
+            SelectList genders = new SelectList(_context.Genders, "Id", "Name");
+
+            ViewData["Genders"] = genders;
             return View();
         }
 
@@ -53,10 +62,16 @@ namespace OzSapkaTShirt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,PassWord,ConfirmPassWord")] ApplicationUser user)
         {
+            IdentityResult? identityResult;
+
             if (ModelState.IsValid)
             {
-                await _userManager.CreateAsync(user, user.PassWord);
-                return RedirectToAction(nameof(Index));
+                identityResult = _userManager.CreateAsync(user, user.PassWord).Result;
+                if (identityResult == IdentityResult.Success)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                ModelState.AddModelError("PassWord", "Geçersiz şifre");
             }
             return View(user);
         }

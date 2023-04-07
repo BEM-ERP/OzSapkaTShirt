@@ -16,6 +16,7 @@ namespace OzSapkaTShirt.Data
         }
 
         public DbSet<OzSapkaTShirt.Models.Product> Products { get; set; } = default!;
+        public DbSet<OzSapkaTShirt.Models.Gender> Genders { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
