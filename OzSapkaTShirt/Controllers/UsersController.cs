@@ -22,7 +22,7 @@ namespace OzSapkaTShirt.Controllers
         public async Task<IActionResult> Index()
         {
             return _userManager.Users != null ?
-                        View(await _userManager.Users.ToListAsync()) :
+                        View(await _userManager.Users.Include(u => u.GenderType).ToListAsync()) :
                         Problem("Entity set 'ApplicationContext.Users'  is null.");
         }
 
@@ -73,12 +73,17 @@ namespace OzSapkaTShirt.Controllers
                 }
                 ModelState.AddModelError("PassWord", "Geçersiz şifre");
             }
+            SelectList genders = new SelectList(_context.Genders, "Id", "Name");
+
+            ViewData["Genders"] = genders;
             return View(user);
         }
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(string? id)
         {
+            SelectList genders;
+
             if (id == null || _userManager.Users == null)
             {
                 return NotFound();
@@ -89,16 +94,21 @@ namespace OzSapkaTShirt.Controllers
             {
                 return NotFound();
             }
+            genders = new SelectList(_context.Genders, "Id", "Name", user.Gender);
+            ViewData["Genders"] = genders;
             return View(user);
         }
 
-        // POST: Products/Edit/5
+        // POST: Users/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber")] ApplicationUser user)
         {
+            IdentityResult? identityResult;
+            SelectList genders;
+
             if (id != user.Id)
             {
                 return NotFound();
@@ -108,23 +118,15 @@ namespace OzSapkaTShirt.Controllers
             ModelState["ConfirmPassWord"].ValidationState = Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Valid;
             if (ModelState.IsValid)
             {
-                try
+                identityResult = _userManager.UpdateAsync(user).Result;
+                if (identityResult == IdentityResult.Success)
                 {
-                    await _userManager.UpdateAsync(user);
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("UserName", identityResult.Errors.ToArray()[0].Description);
             }
+            genders = new SelectList(_context.Genders, "Id", "Name", user.Gender);
+            ViewData["Genders"] = genders;
             return View(user);
         }
 
