@@ -48,5 +48,13 @@ namespace OzSapkaTShirt.Models
         [Required(ErrorMessage = "Bu alan zorunludur.")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "En fazla 20, en az 2 karakter")]
         public string Color { get; set; } = default!;
+
+        [NotMapped]
+        [DisplayName("Resim")]
+        public IFormFile? Image { get; set; }
+
+        [Column(TypeName = "image")]
+        [DisplayName("Resim")]
+        public byte[]? DBImage { get; set; }
     }
 }

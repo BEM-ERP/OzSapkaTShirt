@@ -56,10 +56,15 @@ namespace OzSapkaTShirt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,Size,Model,Price,Fabric,Color")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,Size,Model,Price,Fabric,Color,Image")] Product product)
         {
+            Stream target = new MemoryStream();
+            product.DBImage = new byte[product.Image.Length]; //Dosya boyutu büyüklüğünde byte[] aç
+
             if (ModelState.IsValid)
             {
+                product.Image.CopyTo(target); //Dosyayı stream'a kopyala
+                target.Write(product.DBImage, 0, (int)product.Image.Length); //Stream'i byte[] içine yaz
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
