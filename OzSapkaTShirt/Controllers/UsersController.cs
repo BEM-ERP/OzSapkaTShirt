@@ -22,7 +22,7 @@ namespace OzSapkaTShirt.Controllers
         public async Task<IActionResult> Index()
         {
             return _userManager.Users != null ?
-                        View(await _userManager.Users.Include(u => u.GenderType).ToListAsync()) :
+                        View(await _userManager.Users.Include(u => u.GenderType).Include(u => u.City).OrderBy(u => u.Name).ThenBy(u => u.SurName).ToListAsync()) :
                         Problem("Entity set 'ApplicationContext.Users'  is null.");
         }
 
@@ -36,7 +36,7 @@ namespace OzSapkaTShirt.Controllers
                 return NotFound();
             }
 
-            user = await _userManager.Users
+            user = await _userManager.Users.Include(u => u.GenderType).Include(u => u.City)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
@@ -50,8 +50,10 @@ namespace OzSapkaTShirt.Controllers
         public IActionResult Create()
         {
             SelectList genders = new SelectList(_context.Genders, "Id", "Name");
+            SelectList cities = new SelectList(_context.Cities, "PlateCode", "Name");
 
             ViewData["Genders"] = genders;
+            ViewData["Cities"] = cities;
             return View();
         }
 
@@ -60,9 +62,10 @@ namespace OzSapkaTShirt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,PassWord,ConfirmPassWord")] ApplicationUser user)
+        public async Task<IActionResult> Create([Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,PassWord,ConfirmPassWord,CityCode")] ApplicationUser user)
         {
             IdentityResult? identityResult;
+            SelectList genders, cities;
 
             if (ModelState.IsValid)
             {
@@ -71,18 +74,22 @@ namespace OzSapkaTShirt.Controllers
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                ModelState.AddModelError("PassWord", "Geçersiz şifre");
+                foreach (IdentityError error in identityResult.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
             }
-            SelectList genders = new SelectList(_context.Genders, "Id", "Name");
-
+            genders = new SelectList(_context.Genders, "Id", "Name");
+            cities = new SelectList(_context.Cities, "PlateCode", "Name");
             ViewData["Genders"] = genders;
+            ViewData["Cities"] = cities;
             return View(user);
         }
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(string? id)
         {
-            SelectList genders;
+            SelectList genders, cities;
 
             if (id == null || _userManager.Users == null)
             {
@@ -95,8 +102,10 @@ namespace OzSapkaTShirt.Controllers
                 return NotFound();
             }
             genders = new SelectList(_context.Genders, "Id", "Name", user.Gender);
+            cities = new SelectList(_context.Cities, "PlateCode", "Name", user.CityCode);
             ViewData["Genders"] = genders;
-            return View(user);
+            ViewData["Cities"] = cities;
+            return View(user.Trim());
         }
 
         // POST: Users/Edit/5
@@ -104,10 +113,11 @@ namespace OzSapkaTShirt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber")] ApplicationUser user)
+        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,CityCode")] ApplicationUser user)
         {
             IdentityResult? identityResult;
-            SelectList genders;
+            SelectList genders, cities;
+            ApplicationUser existingUser;
 
             if (id != user.Id)
             {
@@ -118,15 +128,31 @@ namespace OzSapkaTShirt.Controllers
             ModelState["ConfirmPassWord"].ValidationState = Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Valid;
             if (ModelState.IsValid)
             {
-                identityResult = _userManager.UpdateAsync(user).Result;
+                existingUser = _userManager.FindByIdAsync(id).Result;
+                existingUser.Name = user.Name;
+                existingUser.SurName = user.SurName;
+                existingUser.Corporate = user.Corporate;
+                existingUser.Address = user.Address;
+                existingUser.Gender = user.Gender;
+                existingUser.BirthDate = user.BirthDate;
+                existingUser.UserName = user.UserName;
+                existingUser.Email = user.Email;
+                existingUser.PhoneNumber = user.PhoneNumber;
+                existingUser.CityCode = user.CityCode;
+                identityResult = _userManager.UpdateAsync(existingUser).Result;
                 if (identityResult == IdentityResult.Success)
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                ModelState.AddModelError("UserName", identityResult.Errors.ToArray()[0].Description);
+                foreach (IdentityError error in identityResult.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
             }
             genders = new SelectList(_context.Genders, "Id", "Name", user.Gender);
+            cities = new SelectList(_context.Cities, "PlateCode", "Name", user.CityCode);
             ViewData["Genders"] = genders;
+            ViewData["Cities"] = cities;
             return View(user);
         }
 
@@ -138,7 +164,7 @@ namespace OzSapkaTShirt.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.Users
+            var user = await _userManager.Users.Include(u => u.GenderType).Include(u => u.City)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {

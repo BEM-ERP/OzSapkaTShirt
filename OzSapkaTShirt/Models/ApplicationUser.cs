@@ -37,6 +37,9 @@ public class ApplicationUser : IdentityUser
     [DisplayName("Cinsiyet")]
     public byte Gender { get; set; }
 
+    [ForeignKey("Gender")]
+    public Gender? GenderType { get; set; }
+
     [Column(TypeName = "date")]
     [DisplayName("Doğum tarihi")]
     [DataType(DataType.Date)]
@@ -61,6 +64,12 @@ public class ApplicationUser : IdentityUser
     [StringLength(10, MinimumLength = 10, ErrorMessage = "10 karakter")]
     public override string PhoneNumber { get => base.PhoneNumber; set => base.PhoneNumber = value; }
 
+    [DisplayName("Şehir")]
+    public byte CityCode { get; set; }
+
+    [ForeignKey("CityCode")]
+    public City? City { get; set; }
+
     [NotMapped]
     [DisplayName("Parola")]
     [Required(ErrorMessage = "Bu alan zorunludur.")]
@@ -76,7 +85,15 @@ public class ApplicationUser : IdentityUser
     [Compare("PassWord", ErrorMessage = "Parola eşleşme başarısız")]
     public string ConfirmPassWord { get; set; } = default!;
 
-    [ForeignKey("Gender")]
-    public Gender GenderType { get; set; } = default!;
+    public ApplicationUser Trim()
+    {
+        this.Name = this.Name.Trim();
+        this.SurName = this.SurName.Trim();
+        this.Address = this.Address.Trim();
+        this.UserName = this.UserName.Trim();
+        this.Email = this.Email.Trim();
+        this.PhoneNumber = this.PhoneNumber.Trim();
+        return this;
+    }
 }
 
