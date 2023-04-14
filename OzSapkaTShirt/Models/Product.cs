@@ -56,5 +56,9 @@ namespace OzSapkaTShirt.Models
         [Column(TypeName = "image")]
         [DisplayName("Resim")]
         public byte[]? DBImage { get; set; }
+
+        [Column(TypeName = "image")]
+        [DisplayName("Resim")]
+        public byte[]? ThumbNail { get; set; }
     }
 }

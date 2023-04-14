@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OzSapkaTShirt.Data;
 using OzSapkaTShirt.Models;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
+using System.Drawing.Imaging;
 
 namespace OzSapkaTShirt.Controllers
 {
@@ -44,6 +48,37 @@ namespace OzSapkaTShirt.Controllers
 
             return View(product);
         }
+        private Image ReSize(Image originalImage, int newWidth, int newHeight)
+        {
+            Graphics graphicsHandle;
+            double targetRatio = (double)newWidth / (double)newHeight;
+            double newRatio = (double)originalImage.Width / (double)originalImage.Height;
+            int targetWidth = newWidth;
+            int targetHeight = newHeight;
+            int newOriginX = 0;
+            int newOriginY = 0;
+            Image newImage = new Bitmap(newWidth, newHeight);
+
+            if (newRatio > targetRatio)
+            {
+                targetWidth = (int)(originalImage.Width / ((double)originalImage.Height / newHeight));
+                newOriginX = (newWidth - targetWidth) / 2;
+            }
+            else
+            {
+                if (newRatio < targetRatio)
+                {
+                    targetHeight = (int)(originalImage.Height / ((double)originalImage.Width / newWidth));
+                    newOriginY = (newHeight - targetHeight) / 2;
+                }
+            }
+            graphicsHandle = Graphics.FromImage(newImage);
+            graphicsHandle.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphicsHandle.CompositingQuality = CompositingQuality.HighQuality;
+            graphicsHandle.SmoothingMode = SmoothingMode.HighQuality;
+            graphicsHandle.DrawImage(originalImage, newOriginX, newOriginY, targetWidth, targetHeight);
+            return newImage;
+        }
 
         // GET: Products/Create
         public IActionResult Create()
@@ -58,13 +93,39 @@ namespace OzSapkaTShirt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,Size,Model,Price,Fabric,Color,Image")] Product product)
         {
-            Stream target = new MemoryStream();
-            product.DBImage = new byte[product.Image.Length]; //Dosya boyutu büyüklüğünde byte[] aç
+            MemoryStream target, reSizedTarget;
+            Image reSizedImage, originalImage;
+            EncoderParameter qualityParameter;
+            EncoderParameters encoderParameters;
+            ImageCodecInfo[] allCoDecs;
+            ImageCodecInfo jPEGCodec = null;
 
             if (ModelState.IsValid)
             {
-                product.Image.CopyTo(target); //Dosyayı stream'a kopyala
-                target.Write(product.DBImage, 0, (int)product.Image.Length); //Stream'i byte[] içine yaz
+                if (product.Image != null)
+                {
+                    encoderParameters = new EncoderParameters(1);
+                    qualityParameter = new EncoderParameter(Encoder.Quality, 60L);
+                    encoderParameters.Param[0] = qualityParameter;
+                    reSizedTarget = new MemoryStream();
+                    allCoDecs = ImageCodecInfo.GetImageEncoders();
+                    foreach (ImageCodecInfo coDec in allCoDecs)
+                    {
+                        if (coDec.FormatDescription == "JPEG")
+                        {
+                            jPEGCodec = coDec;
+                        }
+                    }
+                    target = new MemoryStream();
+                    product.Image.CopyTo(target); //Dosyayı stream'a kopyala
+                    originalImage = Image.FromStream(target);
+                    reSizedImage = ReSize(originalImage, 300, 400);
+                    reSizedImage.Save(reSizedTarget, jPEGCodec, encoderParameters);
+                    product.DBImage = reSizedTarget.ToArray();
+                    reSizedImage = ReSize(originalImage, 150, 200);
+                    reSizedImage.Save(reSizedTarget, jPEGCodec, encoderParameters);
+                    product.ThumbNail = reSizedTarget.ToArray();
+                }
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

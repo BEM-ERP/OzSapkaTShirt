@@ -64,6 +64,10 @@
                 @Html.DisplayFor(modelItem => item.Color)
             </td>
             <td>
+                @if (item.DBImage != null)
+                {
+                    <img src="data:image/png;base64,@Convert.ToBase64String(item.DBImage)" style="width:100px" />
+                }
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
