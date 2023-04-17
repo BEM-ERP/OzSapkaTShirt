@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OzSapkaTShirt.Data;
 using OzSapkaTShirt.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace OzSapkaTShirt.Controllers
 {
@@ -11,20 +14,16 @@ namespace OzSapkaTShirt.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationContext _context;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public UsersController(UserManager<ApplicationUser> userManager, ApplicationContext context)
+        public UsersController(UserManager<ApplicationUser> userManager, ApplicationContext context, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _context = context;
+            _signInManager = signInManager;
         }
 
         // GET: Users
-        public async Task<IActionResult> Index()
-        {
-            return _userManager.Users != null ?
-                        View(await _userManager.Users.Include(u => u.GenderType).Include(u => u.City).OrderBy(u => u.Name).ThenBy(u => u.SurName).ToListAsync()) :
-                        Problem("Entity set 'ApplicationContext.Users'  is null.");
-        }
 
         // GET: Userss/Details/5
         public async Task<IActionResult> Details(string? id)
@@ -72,6 +71,7 @@ namespace OzSapkaTShirt.Controllers
                 identityResult = _userManager.CreateAsync(user, user.PassWord).Result;
                 if (identityResult == IdentityResult.Success)
                 {
+                    //Add customer role to user
                     return RedirectToAction(nameof(Index));
                 }
                 foreach (IdentityError error in identityResult.Errors)
@@ -124,8 +124,8 @@ namespace OzSapkaTShirt.Controllers
                 return NotFound();
             }
 
-            ModelState["PassWord"].ValidationState = Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Valid;
-            ModelState["ConfirmPassWord"].ValidationState = Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Valid;
+            ModelState.Remove("PassWord");
+            ModelState.Remove("ConfirmPassWord");
             if (ModelState.IsValid)
             {
                 existingUser = _userManager.FindByIdAsync(id).Result;
@@ -194,6 +194,58 @@ namespace OzSapkaTShirt.Controllers
         private bool UserExists(string id)
         {
             return (_userManager.Users?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        // POST: Users/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login([Bind("UserName,PassWord")] ApplicationUser user)
+        {
+            Microsoft.AspNetCore.Identity.SignInResult signInResult;
+
+            if (ModelState["UserName"].ValidationState == ModelValidationState.Valid)
+            {
+                if (ModelState["Password"].ValidationState == ModelValidationState.Valid)
+                {
+                    signInResult = _signInManager.PasswordSignInAsync(user.UserName, user.PassWord, false, false).Result;
+                    if (signInResult.Succeeded == true)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+            }
+            return View(user);
+        }
+
+        [Authorize]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        // POST: Users/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(string userId, string oldPassword, string newPassword)
+        {
+            string userIdentity = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ApplicationUser existingUser = _userManager.FindByIdAsync(userId).Result;
+            IdentityResult identityResult;
+
+            identityResult = _userManager.ChangePasswordAsync(, oldPassword, newPassword).Result;
+            //identity result success'se şifre değişti aksi halde tekrar şifre değiştirme ekranı
+            return View();
         }
     }
 }
