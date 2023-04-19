@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace OzSapkaTShirt.Areas.Admin.Controllers
 {
-    [Authorize(Roles ="Administrator")]
+    //[Authorize(Roles ="Administrator")]
+    [Area("Admin")]
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
