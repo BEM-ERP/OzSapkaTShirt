@@ -72,7 +72,7 @@ namespace OzSapkaTShirt.Controllers
                 if (identityResult == IdentityResult.Success)
                 {
                     //Add customer role to user
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Home");
                 }
                 foreach (IdentityError error in identityResult.Errors)
                 {
@@ -142,7 +142,7 @@ namespace OzSapkaTShirt.Controllers
                 identityResult = _userManager.UpdateAsync(existingUser).Result;
                 if (identityResult == IdentityResult.Success)
                 {
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Index", "Home");
                 }
                 foreach (IdentityError error in identityResult.Errors)
                 {
@@ -188,7 +188,7 @@ namespace OzSapkaTShirt.Controllers
             {
                 await _userManager.DeleteAsync(user);
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index","Home");
         }
 
         private bool UserExists(string id)
@@ -217,7 +217,7 @@ namespace OzSapkaTShirt.Controllers
                     signInResult = _signInManager.PasswordSignInAsync(user.UserName, user.PassWord, false, false).Result;
                     if (signInResult.Succeeded == true)
                     {
-                        return RedirectToAction(nameof(Index));
+                        return RedirectToAction("Index", "Home");
                     }
                 }
             }
@@ -236,15 +236,20 @@ namespace OzSapkaTShirt.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> ChangePassword(string userId, string oldPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword(string oldPassword, string Password)
         {
             string userIdentity = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            ApplicationUser existingUser = _userManager.FindByIdAsync(userId).Result;
             IdentityResult identityResult;
+            ApplicationUser existingUser = _userManager.FindByIdAsync(userIdentity).Result;
 
-            identityResult = _userManager.ChangePasswordAsync(, oldPassword, newPassword).Result;
-            //identity result success'se şifre değişti aksi halde tekrar şifre değiştirme ekranı
+            existingUser.PassWord = Password;
+            existingUser.ConfirmPassWord = Password;
+            existingUser.UserName = existingUser.UserName.Trim();
+            identityResult = _userManager.ChangePasswordAsync(existingUser, oldPassword, Password).Result;
+            if (identityResult.Succeeded == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
     }
