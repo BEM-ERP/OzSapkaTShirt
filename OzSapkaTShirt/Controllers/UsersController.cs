@@ -26,6 +26,7 @@ namespace OzSapkaTShirt.Controllers
         // GET: Users
 
         // GET: Userss/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(string? id)
         {
             ApplicationUser? user;
@@ -87,6 +88,7 @@ namespace OzSapkaTShirt.Controllers
         }
 
         // GET: Products/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(string? id)
         {
             SelectList genders, cities;
@@ -113,6 +115,7 @@ namespace OzSapkaTShirt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(string id, [Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,CityCode")] ApplicationUser user)
         {
             IdentityResult? identityResult;
@@ -157,6 +160,7 @@ namespace OzSapkaTShirt.Controllers
         }
 
         // GET: Products/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(string? id)
         {
             if (id == null || _userManager.Users == null)
@@ -177,6 +181,7 @@ namespace OzSapkaTShirt.Controllers
         // POST: Products/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             if (_userManager.Users == null)
