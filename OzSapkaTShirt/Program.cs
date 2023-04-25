@@ -45,6 +45,7 @@ namespace OzSapkaTShirt
             context = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<ApplicationContext>();
             context.Database.Migrate();
 
+
             app.Run();
         }
     }
