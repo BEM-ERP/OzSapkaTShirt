@@ -30,6 +30,9 @@ namespace OzSapkaTShirt.Controllers
         public async Task<IActionResult> Details(string? id)
         {
             ApplicationUser? user;
+            var a = 3;
+
+            a = a / 1000000000;
 
             if (id == null || _userManager.Users == null)
             {

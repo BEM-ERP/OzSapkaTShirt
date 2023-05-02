@@ -172,5 +172,13 @@ namespace OzSapkaTShirt.Controllers
         {
           return (_context.OrderProducts?.Any(e => e.OrderId == id)).GetValueOrDefault();
         }
+        public byte AddToBasket(long id)
+        {
+            //find current user
+            //check if the user has a basket
+            //if there is no basket create an order with basket status
+            //add product to order
+            return 8; //return basket count
+        }
     }
 }

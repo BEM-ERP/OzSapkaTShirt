@@ -22,5 +22,8 @@ namespace OzSapkaTShirt.Models
 
         [DisplayName("Toplam")]
         public float TotalPrice { get; set; }
+
+        [DisplayName("Durum")]
+        public byte Status { get; set; }
     }
 }

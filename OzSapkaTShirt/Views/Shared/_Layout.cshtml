@@ -1,4 +1,7 @@
 ﻿@using System.Security.Claims
+@{
+    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,18 +29,27 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        @if (User.FindFirstValue(ClaimTypes.NameIdentifier) == null)
+                        @if (userId == null)
                         {
-                            <li class="nav-item">
+                            <li class="nav-item" style="position:absolute;right:0">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Login">Giriş</a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" style="position:absolute;right:50px">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Create">Kayıt</a>
                             </li>
                         }
                         else
                         {
-                            <li class="nav-item">
+                            <li class="nav-item" style="position:absolute;right:100px">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Orders" asp-action="Details">
+                                    <span>Sepetim</span>
+                                    <span id="basketCount"></span>
+                                </a>
+                            </li>
+                            <li class="nav-item" style="position:absolute;right:50px">
+                                <a class="nav-link text-dark" asp-controller="Users" asp-action="Edit" asp-route-id="@userId">Profil</a>
+                            </li>
+                            <li class="nav-item" style="position:absolute;right:0">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Logout">Çıkış</a>
                             </li>
                         }
@@ -47,7 +59,7 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3 text-center">
             @RenderBody()
         </main>
     </div>
