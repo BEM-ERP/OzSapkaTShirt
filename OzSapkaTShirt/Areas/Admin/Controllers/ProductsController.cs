@@ -151,6 +151,7 @@ namespace OzSapkaTShirt.Areas.Admin.Controllers
                         throw;
                     }
                 }
+                //bu ürünün bulunduğu sepetleri güncelle
                 return RedirectToAction(nameof(Index));
             }
             return View(product);

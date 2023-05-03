@@ -25,5 +25,7 @@ namespace OzSapkaTShirt.Models
 
         [DisplayName("Durum")]
         public byte Status { get; set; }
+
+        public List<OrderProduct>? OrderProducts { get; set; }
     }
 }

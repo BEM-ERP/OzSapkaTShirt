@@ -176,11 +176,11 @@ namespace OzSapkaTShirt.Controllers
         public byte AddToBasket(long id)
         {
             Order? order;
-            OrderProduct orderProduct = new OrderProduct();
+            OrderProduct? orderProduct;
             Product? product = _context.Products.Find(id);
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            order = _context.Orders.Where(o => o.UserId == userId && o.Status == 0).FirstOrDefault();
+            order = _context.Orders.Where(o => o.UserId == userId && o.Status == 0).Include(o => o.OrderProducts).FirstOrDefault();
             if (order == null)
             {
                 order = new Order();
@@ -188,17 +188,29 @@ namespace OzSapkaTShirt.Controllers
                 order.Status = 0;
                 order.TotalPrice = 0;
                 order.UserId = userId;
+                order.OrderProducts = new List<OrderProduct>();
                 _context.Add(order);
                 _context.SaveChanges();
             }
-            orderProduct.OrderId = order.Id;
-            orderProduct.Price = product.Price;
-            orderProduct.ProductId = id;
-            orderProduct.Quantity = 1;
-            orderProduct.Total = product.Price;
-            _context.Add(orderProduct);
+            orderProduct = order.OrderProducts.Find(o => o.ProductId == id);
+            if (orderProduct == null)
+            {
+                orderProduct = new OrderProduct();
+                orderProduct.OrderId = order.Id;
+                orderProduct.Price = product.Price;
+                orderProduct.ProductId = id;
+                orderProduct.Quantity = 1;
+                orderProduct.Total = product.Price;
+                order.OrderProducts.Add(orderProduct);
+            }
+            else
+            {
+                orderProduct.Quantity++;
+            }
+            order.TotalPrice += product.Price;
+            _context.Update(order);
             _context.SaveChanges();
-            return 1;
+            return (byte)order.OrderProducts.Sum(o => o.Quantity);
         }
     }
 }
