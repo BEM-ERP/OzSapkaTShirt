@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -174,11 +175,30 @@ namespace OzSapkaTShirt.Controllers
         }
         public byte AddToBasket(long id)
         {
-            //find current user
-            //check if the user has a basket
-            //if there is no basket create an order with basket status
-            //add product to order
-            return 8; //return basket count
+            Order? order;
+            OrderProduct orderProduct = new OrderProduct();
+            Product? product = _context.Products.Find(id);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            order = _context.Orders.Where(o => o.UserId == userId && o.Status == 0).FirstOrDefault();
+            if (order == null)
+            {
+                order = new Order();
+                order.OrderDate = DateTime.Today;
+                order.Status = 0;
+                order.TotalPrice = 0;
+                order.UserId = userId;
+                _context.Add(order);
+                _context.SaveChanges();
+            }
+            orderProduct.OrderId = order.Id;
+            orderProduct.Price = product.Price;
+            orderProduct.ProductId = id;
+            orderProduct.Quantity = 1;
+            orderProduct.Total = product.Price;
+            _context.Add(orderProduct);
+            _context.SaveChanges();
+            return 1;
         }
     }
 }
