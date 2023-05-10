@@ -21,6 +21,7 @@ namespace OzSapkaTShirt
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddSession();
 
             var app = builder.Build();
 
@@ -35,6 +36,7 @@ namespace OzSapkaTShirt
                         app.UseAuthentication();;
 
             app.UseAuthorization();
+            app.UseSession();
 
             app.MapControllerRoute(
               name: "areas",

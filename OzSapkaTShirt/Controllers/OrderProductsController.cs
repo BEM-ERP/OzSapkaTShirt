@@ -173,7 +173,7 @@ namespace OzSapkaTShirt.Controllers
         {
           return (_context.OrderProducts?.Any(e => e.OrderId == id)).GetValueOrDefault();
         }
-        public byte AddToBasket(long id)
+        public Order UpDateBasket(long id, byte quantity, bool addReMove)
         {
             Order? order;
             OrderProduct? orderProduct;
@@ -205,12 +205,30 @@ namespace OzSapkaTShirt.Controllers
             }
             else
             {
-                orderProduct.Quantity++;
+                if (addReMove == false)
+                {
+                    quantity = (byte)-quantity;
+                }
+                orderProduct.Quantity += quantity;
+                if (orderProduct.Quantity == 0)
+                {
+                    order.OrderProducts.Remove(orderProduct);
+                    if (order.OrderProducts.Count == 0)
+                    {
+                        _context.Remove(order);
+                        _context.SaveChanges();
+                        return null;
+                    }
+                }
+                else
+                {
+                    orderProduct.Total += product.Price * quantity;
+                }
             }
-            order.TotalPrice += product.Price;
+            order.TotalPrice += product.Price * quantity;
             _context.Update(order);
             _context.SaveChanges();
-            return (byte)order.OrderProducts.Sum(o => o.Quantity);
+            return order;
         }
     }
 }

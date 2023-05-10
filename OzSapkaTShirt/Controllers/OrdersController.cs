@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,21 +30,15 @@ namespace OzSapkaTShirt.Controllers
         }
 
         // GET: Orders/Details/5
-        public async Task<IActionResult> Details(long? id)
+        public async Task<IActionResult> Details()
         {
-            if (id == null || _context.Orders == null)
-            {
-                return NotFound();
-            }
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Order? order = _context.Orders.Where(o => o.UserId == userId && o.Status == 0).Include(o => o.OrderProducts).ThenInclude(o => o.Product).FirstOrDefault();
 
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
             if (order == null)
             {
                 return NotFound();
             }
-
             return View(order);
         }
 
@@ -68,6 +63,25 @@ namespace OzSapkaTShirt.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
+            return View(order);
+        }
+
+        public async Task<IActionResult> Approve(long? id)
+        {
+            if (id == null || _context.Orders == null)
+            {
+                return NotFound();
+            }
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+            order.Status = 1;
+            order.OrderDate = DateTime.Today;
+            _context.Update(order);
+            _context.SaveChanges();
             return View(order);
         }
 

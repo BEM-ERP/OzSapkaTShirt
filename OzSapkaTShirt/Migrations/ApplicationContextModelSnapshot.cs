@@ -270,7 +270,7 @@ namespace OzSapkaTShirt.Migrations
 
                     b.HasKey("PlateCode");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
                 });
 
             modelBuilder.Entity("OzSapkaTShirt.Models.Gender", b =>
@@ -284,7 +284,7 @@ namespace OzSapkaTShirt.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genders");
+                    b.ToTable("Genders", (string)null);
                 });
 
             modelBuilder.Entity("OzSapkaTShirt.Models.Order", b =>
@@ -312,7 +312,7 @@ namespace OzSapkaTShirt.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("OzSapkaTShirt.Models.OrderProduct", b =>
@@ -336,7 +336,7 @@ namespace OzSapkaTShirt.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderProducts");
+                    b.ToTable("OrderProducts", (string)null);
                 });
 
             modelBuilder.Entity("OzSapkaTShirt.Models.Product", b =>
@@ -388,7 +388,7 @@ namespace OzSapkaTShirt.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -229,6 +229,7 @@ namespace OzSapkaTShirt.Controllers
                     }
                 }
             }
+            HttpContext.Session.SetInt32("basketCount", 0);
             return View(user);
         }
 
