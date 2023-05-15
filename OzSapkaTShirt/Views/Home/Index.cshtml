@@ -28,7 +28,7 @@
                 $("#basketCount").html(basketCount);
             }
             function AddToBasket(productId) {
-                $.post("@Url.Action("UpDateBasket","OrderProducts")/" + productId+"?quantity=1&addReMove=true",UpDateBasket,"json");
+                $.post("@Url.Action("UpDateBasket","OrderProducts")/" + productId+"?quantity=1",UpDateBasket,"json");
 @*                $("#basketCount").load("@Url.Action("UpDateBasket","OrderProducts")/" + productId+"?quantity=1&addReMove=true");
 *@            }
         </script>

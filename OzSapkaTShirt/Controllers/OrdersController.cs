@@ -79,7 +79,7 @@ namespace OzSapkaTShirt.Controllers
                 return NotFound();
             }
             order.Status = 1;
-            order.OrderDate = DateTime.Today;
+            order.OrderDate = DateTime.Now;
             _context.Update(order);
             _context.SaveChanges();
             return View(order);

@@ -173,7 +173,7 @@ namespace OzSapkaTShirt.Controllers
         {
           return (_context.OrderProducts?.Any(e => e.OrderId == id)).GetValueOrDefault();
         }
-        public Order UpDateBasket(long id, byte quantity, bool addReMove)
+        public Order UpDateBasket(long id, short quantity)
         {
             Order? order;
             OrderProduct? orderProduct;
@@ -205,10 +205,6 @@ namespace OzSapkaTShirt.Controllers
             }
             else
             {
-                if (addReMove == false)
-                {
-                    quantity = (byte)-quantity;
-                }
                 orderProduct.Quantity += quantity;
                 if (orderProduct.Quantity == 0)
                 {

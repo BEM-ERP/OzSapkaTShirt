@@ -24,7 +24,7 @@ namespace OzSapkaTShirt.Models
 
         [DisplayName("Adet")]
         [Required(ErrorMessage = "Bu alan zorunludur.")]
-        public byte Quantity { get; set; }
+        public short Quantity { get; set; }
 
         [DisplayName("Fiyat")]
         public float Price { get; set; }
