@@ -7,9 +7,44 @@ using OzSapkaTShirt.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace OzSapkaTShirt.Controllers
 {
+    public struct ForgetModel
+    {
+        [DisplayName("E-posta")]
+        [Required(ErrorMessage = "Bu alan zorunludur.")]
+        [StringLength(256, MinimumLength = 5, ErrorMessage = "En fazla 256, en az 5 karakter")]
+        [EmailAddress(ErrorMessage = "Geçersiz format")]
+        public string EMail { get; set; }
+    }
+    public struct ResetModel
+    {
+        [Required]
+        [StringLength(256, MinimumLength = 5)]
+        [EmailAddress]
+        public string EMail { get; set; }
+
+        [Required]
+        public string Code { get; set; }
+
+        [DisplayName("Parola")]
+        [Required(ErrorMessage = "Bu alan zorunludur.")]
+        [StringLength(128, MinimumLength = 8, ErrorMessage = "En fazla 128, en az 8 karakter")]
+        [DataType(DataType.Password)]
+        public string PassWord { get; set; }
+
+        [DisplayName("Parola (tekrar)")]
+        [Required(ErrorMessage = "Bu alan zorunludur.")]
+        [StringLength(128, MinimumLength = 8, ErrorMessage = "En fazla 128, en az 8 karakter")]
+        [DataType(DataType.Password)]
+        [Compare("PassWord", ErrorMessage = "Parola eşleşme başarısız")]
+        public string ConfirmPassWord { get; set; }
+    }
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -119,7 +154,7 @@ namespace OzSapkaTShirt.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,CityCode")] ApplicationUser user)
+        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,SurName,Corporate,Address,Gender,BirthDate,UserName,Email,PhoneNumber,CityCode")] ApplicationUser user, ApplicationContext applicationContext)
         {
             IdentityResult? identityResult;
             SelectList genders, cities;
@@ -153,6 +188,7 @@ namespace OzSapkaTShirt.Controllers
                 foreach (IdentityError error in identityResult.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
+                    return View("abc");
                 }
             }
             genders = new SelectList(_context.Genders, "Id", "Name", user.Gender);
@@ -196,7 +232,7 @@ namespace OzSapkaTShirt.Controllers
             {
                 await _userManager.DeleteAsync(user);
             }
-            return RedirectToAction("Index","Home");
+            return RedirectToAction("Index", "Home");
         }
 
         private bool UserExists(string id)
@@ -265,6 +301,43 @@ namespace OzSapkaTShirt.Controllers
         {
             _signInManager.SignOutAsync().Wait();
             return RedirectToAction("Index", "Home");
+        }
+        public ViewResult ForgetPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ViewResult ForgetPassword(ForgetModel forgetModel)
+        {
+            ApplicationUser applicationUser;
+            string resetToken;
+
+            if (ModelState.IsValid)
+            {
+                applicationUser = _userManager.FindByEmailAsync(forgetModel.EMail).Result;
+                if (applicationUser != null)
+                {
+                    resetToken = _userManager.GeneratePasswordResetTokenAsync(applicationUser).Result;
+                    //send resetToken to forgetModel.EMail
+                    ViewData["eMail"] = forgetModel.EMail;
+                    return View("ResetPassword");
+                }
+            }
+            return View();
+        }
+        [HttpPost]
+        public ViewResult ResetPassword(ResetModel resetModel)
+        {
+            ApplicationUser applicationUser;
+
+            if (ModelState.IsValid)
+            {
+                applicationUser = _userManager.FindByEmailAsync(resetModel.EMail).Result;
+
+                _userManager.ResetPasswordAsync(applicationUser, resetModel.Code, resetModel.PassWord);
+            }
+            return View();
         }
     }
 }
