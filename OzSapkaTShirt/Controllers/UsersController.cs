@@ -14,7 +14,7 @@ using System.ComponentModel;
 
 namespace OzSapkaTShirt.Controllers
 {
-    public struct ForgetModel
+    public class ForgetModel
     {
         [DisplayName("E-posta")]
         [Required(ErrorMessage = "Bu alan zorunludur.")]
@@ -22,7 +22,7 @@ namespace OzSapkaTShirt.Controllers
         [EmailAddress(ErrorMessage = "Geçersiz format")]
         public string EMail { get; set; }
     }
-    public struct ResetModel
+    public class ResetModel
     {
         [Required]
         [StringLength(256, MinimumLength = 5)]
@@ -308,7 +308,7 @@ namespace OzSapkaTShirt.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ViewResult ForgetPassword(ForgetModel forgetModel)
+        public ViewResult ForgetPassword([Bind("EMail")] ForgetModel forgetModel)
         {
             ApplicationUser applicationUser;
             string resetToken;
@@ -330,14 +330,16 @@ namespace OzSapkaTShirt.Controllers
         public ViewResult ResetPassword(ResetModel resetModel)
         {
             ApplicationUser applicationUser;
+            IdentityResult identityResult;
 
             if (ModelState.IsValid)
             {
                 applicationUser = _userManager.FindByEmailAsync(resetModel.EMail).Result;
+                applicationUser.UserName = applicationUser.UserName.Trim();
 
-                _userManager.ResetPasswordAsync(applicationUser, resetModel.Code, resetModel.PassWord);
+                identityResult = _userManager.ResetPasswordAsync(applicationUser, resetModel.Code, resetModel.PassWord).Result;
             }
-            return View();
+            return View("Login");
         }
     }
 }
