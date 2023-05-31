@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -21,16 +22,18 @@ namespace OzSapkaTShirt.Areas.Admin.Controllers
             public long? ProductId { get; set; }
         }
         private readonly ApplicationContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public OrdersController(ApplicationContext context)
+        public OrdersController(ApplicationContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Admin/Orders
         public async Task<IActionResult> Index()
         {
-            ViewData["Customers"] = new SelectList(_context.Users, "Id", "Name");
+            ViewData["Customers"] = new SelectList(_userManager.Users, "Id", "Name");
             ViewData["Products"] = new SelectList(_context.Products, "Id", "Name");
             return View();
         }
