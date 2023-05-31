@@ -15,10 +15,10 @@ namespace OzSapkaTShirt.Areas.Admin.Controllers
     {
         public class ReportModel
         {
-            public DateTime? Start { get; set; } = DateTime.MinValue;
-            public DateTime? End { get; set; } = DateTime.Today;
-            public string UserId { get; set; }
-            public long ProductId { get; set; }
+            public DateTime? Start { get; set; }
+            public DateTime? End { get; set; }
+            public string? UserId { get; set; }
+            public long? ProductId { get; set; }
         }
         private readonly ApplicationContext _context;
 
@@ -30,28 +30,33 @@ namespace OzSapkaTShirt.Areas.Admin.Controllers
         // GET: Admin/Orders
         public async Task<IActionResult> Index()
         {
-            ViewData["Customers"] = new SelectList(_context.Users, "Id", "Name" + "SurName");
+            ViewData["Customers"] = new SelectList(_context.Users, "Id", "Name");
             ViewData["Products"] = new SelectList(_context.Products, "Id", "Name");
             return View();
         }
 
         // GET: Admin/Orders/Details/5
-        public async Task<IActionResult> Details(long? id)
+        public async Task<IActionResult> Report([Bind("Start,End,UserId,ProductId")] ReportModel reportModel)
         {
-            if (id == null || _context.Orders == null)
+            IQueryable<Order> orders = _context.Orders;
+            if (reportModel.Start != null)
             {
-                return NotFound();
+                orders = orders.Where(o => o.OrderDate >= reportModel.Start.Value);
             }
-
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (order == null)
+            if (reportModel.End != null)
             {
-                return NotFound();
+                orders = orders.Where(o => o.OrderDate <= reportModel.End.Value);
             }
-
-            return View(order);
+            if (reportModel.UserId != null)
+            {
+                orders = orders.Where(o => o.UserId == reportModel.UserId);
+            }
+            //if (reportModel.ProductId != null)
+            //{
+            //    orders = orders.Where(o => o.UserId == reportModel.UserId);
+            //}
+            orders = orders.Include(o => o.OrderProducts).ThenInclude(op => op.Product);
+            return View(orders.ToList());
         }
 
         // GET: Admin/Orders/Create

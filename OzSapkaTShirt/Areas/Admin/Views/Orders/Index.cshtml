@@ -4,6 +4,13 @@
 @{
     ViewData["Title"] = "Create";
 }
+<script>
+    function LoadReport(e,filterForm)
+    {
+        e.preventDefault();
+        $("#reportDiv").load("@Url.Action("Report")",filterForm.serialize());
+    }
+</script>
 
 <h1>Create</h1>
 
@@ -11,7 +18,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form onsubmit="LoadReport(e,this)">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Start" class="control-label"></label>
@@ -39,6 +46,7 @@
         </form>
     </div>
 </div>
+<div id="reportDiv"></div>
 
 <div>
     <a asp-action="Index">Back to List</a>
