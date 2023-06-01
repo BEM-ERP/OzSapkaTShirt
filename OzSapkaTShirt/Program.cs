@@ -11,16 +11,16 @@ namespace OzSapkaTShirt
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            ApplicationContext context;
-            UserManager<ApplicationUser> userManager;
-            RoleManager<IdentityRole> roleManager;
+            ApplicationContext? context;
+            UserManager<ApplicationUser>? userManager;
+            RoleManager<IdentityRole>? roleManager;
             IdentityRole role;
             ApplicationUser applicationUser;
 
             builder.Services.AddDbContext<ApplicationContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationContext") ?? throw new InvalidOperationException("Connection string 'ApplicationContext' not found.")));
 
-            builder.Services.AddDefaultIdentity<ApplicationUser>(options => { options.SignIn.RequireConfirmedAccount = false; options.Password.RequireNonAlphanumeric = false; })
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => { options.SignIn.RequireConfirmedAccount = false; options.Password.RequireNonAlphanumeric = false; })
                 .AddEntityFrameworkStores<ApplicationContext>();
 
             // Add services to the container.
@@ -37,7 +37,7 @@ namespace OzSapkaTShirt
             app.UseStaticFiles();
 
             app.UseRouting();
-                        app.UseAuthentication();;
+            app.UseAuthentication(); ;
 
             app.UseAuthorization();
             app.UseSession();
@@ -49,18 +49,27 @@ namespace OzSapkaTShirt
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-            context = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<ApplicationContext>();
-            context.Database.Migrate();
-            userManager = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>();
-            roleManager = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<RoleManager<IdentityRole>>();
-            if (roleManager.FindByNameAsync("Administrator").Result == null)
+            context = app.Services.CreateScope().ServiceProvider.GetService<ApplicationContext>();
+            if (context != null)
             {
-                role = new IdentityRole("Administrator");
-                roleManager.CreateAsync(role).Wait();
-                applicationUser = new ApplicationUser();
-                applicationUser.UserName = "Administrator";
-                userManager.CreateAsync(applicationUser, "Abcd1234").Wait();
-                userManager.AddToRoleAsync(applicationUser, "Administrator").Wait();
+                context.Database.Migrate();
+                userManager = app.Services.CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>();
+                roleManager = app.Services.CreateScope().ServiceProvider.GetService<RoleManager<IdentityRole>>();
+                if (roleManager != null)
+                {
+                    if (roleManager.FindByNameAsync("Administrator").Result == null)
+                    {
+                        role = new IdentityRole("Administrator");
+                        roleManager.CreateAsync(role).Wait();
+                        if (userManager != null)
+                        {
+                            applicationUser = new ApplicationUser();
+                            applicationUser.UserName = "Administrator";
+                            userManager.CreateAsync(applicationUser, "Abcd1234").Wait();
+                            userManager.AddToRoleAsync(applicationUser, "Administrator").Wait();
+                        }
+                    }
+                }
             }
             app.Run();
         }
