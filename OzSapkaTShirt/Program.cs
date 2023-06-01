@@ -12,6 +12,10 @@ namespace OzSapkaTShirt
         {
             var builder = WebApplication.CreateBuilder(args);
             ApplicationContext context;
+            UserManager<ApplicationUser> userManager;
+            RoleManager<IdentityRole> roleManager;
+            IdentityRole role;
+            ApplicationUser applicationUser;
 
             builder.Services.AddDbContext<ApplicationContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationContext") ?? throw new InvalidOperationException("Connection string 'ApplicationContext' not found.")));
@@ -47,8 +51,17 @@ namespace OzSapkaTShirt
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             context = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<ApplicationContext>();
             context.Database.Migrate();
-
-
+            userManager = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>();
+            roleManager = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider.GetService<RoleManager<IdentityRole>>();
+            if (roleManager.FindByNameAsync("Administrator").Result == null)
+            {
+                role = new IdentityRole("Administrator");
+                roleManager.CreateAsync(role).Wait();
+                applicationUser = new ApplicationUser();
+                applicationUser.UserName = "Administrator";
+                userManager.CreateAsync(applicationUser, "Abcd1234").Wait();
+                userManager.AddToRoleAsync(applicationUser, "Administrator").Wait();
+            }
             app.Run();
         }
     }
